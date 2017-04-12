@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>FB Simple</title>
+    <link rel="stylesheet" type="text/css" href="semanticui/semantic.min.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="config.js"></script>
+    <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment-with-locales.min.js"></script>
+    <script src="semanticui/semantic.min.js"></script>
+</head>
+<body>
+    <script src="script.js"></script>
+<div class="page content main">
+    <div class="ui container">
+        <button id="login-button" class="ui button center" onclick="myFacebookLogin()">Login with Facebook</button>
+
+        <div class="ui four column stackable grid">
+            <section class="column">
+                <h1>Inbjudningar</h1>
+                <div id="not_replied-events" class="events-list"></div>
+                <button onclick="more_events('not_replied')" class="ui button read-more">Ladda fler</button>
+            </section>
+
+            <section class="column">
+                <h1>Kanske</h1>
+                <div id="maybe-events" class="events-list"></div>
+                <button onclick="more_events('maybe')" class="ui button read-more">Ladda fler</button>
+            </section>
+
+            <section class="column">
+                <h1>Bestämda</h1>
+                <div id="attending-events" class="events-list"></div>
+                <button onclick="more_events('attending')" class="ui button read-more">Ladda fler</button>
+            </section>
+
+            <section class="column">
+                <h1>Skapade av mig</h1>
+                <div id="created-events" class="events-list"></div>
+                <button onclick="more_events('created')" class="ui button read-more">Ladda fler</button>
+            </section>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
