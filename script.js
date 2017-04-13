@@ -8,14 +8,14 @@ var show_event_types = {
 };
 
 var uid = false;
-
+var events = {};
 
 // Only works after `FB.init` is called
 function myFacebookLogin() {
     console.log("fb login running...");
     FB.login(function(){
         start();
-    }, {scope: 'user_events'});
+    }, {scope: 'user_events user_posts'});
 }
 
 function start() {
@@ -62,12 +62,14 @@ function get_events(user_id, target_element, status, expand) {
 }
 
 function get_next(target_element, status) {
+    console.log("get_next:", status);
     var event_list_name = 'default';
     if(typeof(status) !== 'undefined') {
         event_list_name = status;
     }
 
     var page = nexts[event_list_name];
+    console.log("page:", page);
     if(page !== undefined) {
         FB.api(page, 'GET', {}, function (response) {
             render_events(response, target_element, status, true);
@@ -75,6 +77,10 @@ function get_next(target_element, status) {
     } else {
         target_element.innerHTML = target_element.innerHTML + '<div class="card"><div class="content">Inga fler events.</div></div>';
     }
+}
+
+function index_event(event) {
+    events[event.id] = event;
 }
 
 function render_events(response, target_element, status, expand) {
@@ -93,8 +99,14 @@ function render_events(response, target_element, status, expand) {
         var event = response.data[i];
         // Skip events in the past
         if((event.end_time !== undefined && moment(event.end_time) > now) || (event.start_time !== undefined && moment(event.start_time) > now)) {
+            index_event(event);
             new_content = new_content + event_html(event);
         }
+    }
+
+    if(new_content == '') {
+        console.log("No relevant events found.");
+        new_content = '<div class="card"><div class="content">Inga fler events.</div></div>';
     }
     if(typeof(expand) !== 'undefined' && expand) {
         target_element.innerHTML = target_element.innerHTML + new_content;
@@ -107,6 +119,80 @@ function more_events(status) {
     var id = status+'-events';
     var element = document.getElementById(id);
     get_next(element, status);
+}
+
+function render_feed(response) {
+    var events = '';
+    console.log(response.data);
+    for(var i in response.data) {
+        var post = response.data[i];
+        console.log(post.id);
+
+        var story = '';
+        if(post.story !== undefined) {
+            story = '<p>' +
+                post.story +
+            '</p>';
+        }
+        events = events +
+        '<div class="event">' +
+            '<div class="label">' +
+                '<img src="https://graph.facebook.com/'+post.from.id+'/picture">' +
+            '</div>' +
+            '<div class="content">' +
+                '<div class="summary">' +
+                    '<span class="user">'+post.from.name+'</span>' +
+                '</div>' +
+                story +
+                '<p class="event-description">'+post.message+'</p>' +
+                '<div class="meta">' +
+                    '<div class="date">' +
+                        moment(post.updated_time).format(date_format) +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+        '';
+    }
+
+    var html = '' +
+    '<div class="ui feed">' +
+    events +
+    '</div>' +
+    '';
+
+    return html;
+}
+
+function show_event_feed(event_id) {
+    var element = document.getElementById('modal');
+    var event = events[event_id];
+
+    FB.api('/v2.8/'+event_id+'/feed', 'GET', {'fields': 'from,message,story,updated_time'}, function (response) {
+        feed = render_feed(response);
+        var html = '' +
+        '<div class="header">'+
+            event.name +
+            '<a class="corner-icon" href="https://www.facebook.com/events/'+event.id+'" target="_blank"><i class="external square icon"></i></a>' +
+        '</div>' +
+        '<div class="content">' +
+        '<div class="ui two column stackable grid">' +
+            '<div class="column">' +
+                '<div class="description">' +
+                '<p class="event-description">'+event.description+'</p>' +
+                '</div>' +
+            '</div>' +
+            '<div class="column">' +
+                '<div class="ui feed">' +
+                feed +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+        '</div>' +
+        '';
+        element.innerHTML = html;
+        $('#modal').modal('show');
+    });
 }
 
 function event_html(event) {
@@ -128,13 +214,20 @@ function event_html(event) {
         meta = meta + '</div>';
     }
 
+    var show_feed = '' +
+        '<button class="ui button basic wide" onclick="show_event_feed(\''+event.id+'\')"><i class="list icon"></i> Diskussion</button>' +
+        '';
 
     var html = ''+
         '<div class="ui card">' +
         '<div class="content">' +
-        '<a class="header" href="https://www.facebook.com/events/'+event.id+'" target="_blank">'+event.name+'</a>' +
+        '<div class="header">' +
+        '<a class="corner-icon" href="https://www.facebook.com/events/'+event.id+'" target="_blank"><i class="external square icon"></i></a>' +
+        '<span>'+event.name+'</span>' +
+        '</div>' +
         meta +
         location +
+        show_feed +
         '</div>' +
         '</div>' +
         '';

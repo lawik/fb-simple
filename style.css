@@ -16,3 +16,16 @@
 .read-more {
     width: 100%;
 }
+
+.corner-icon {
+    float: right;
+}
+
+.event-description {
+    white-space: pre-wrap;
+}
+
+.wide {
+    display: block;
+    width: 100%;
+}
